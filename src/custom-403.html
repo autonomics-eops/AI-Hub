@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JDE AIHub Landing Zone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      text-align: center;
+      padding: 60px 20px;
+    }
+    h1 {
+      color: #b91c1c;
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: normal;
+      color: #475569;
+      margin-bottom: 30px;
+    }
+    .box {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+      text-align: left;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #334155;
+    }
+    pre {
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    footer {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 40px;
+    }
+    .cce {
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <h1>403 Forbidden</h1>
+  <h2>Invalid or unsupported <code>api-version</code> in request.</h2>
+
+  <div class="box">
+    <p><strong>Expected query parameter:</strong></p>
+    <pre>?api-version=2024-10-21</pre>
+
+    <p><strong>Correct request example (Chat Completions):</strong></p>
+    <pre>
+curl -X POST \
+  "https://aihublz.jdecoffee.net/openai/deployments/&lt;deployment-name&gt;/chat/completions?api-version=2024-10-21" \
+  -H "Content-Type: application/json" \
+  -H "api-key: &lt;your-key&gt;" \
+  -d '{
+    "messages": [{"role": "user", "content": "Hello"}],
+    "temperature": 0.7
+  }'
+    </pre>
+
+    <p><strong>Common mistakes:</strong></p>
+    <ul>
+      <li>Omitting the <code>api-version</code> parameter</li>
+      <li>Using a different or older version</li>
+      <li>Placing <code>api-version</code> in headers instead of the query string</li>
+    </ul>
+  </div>
+
+  <footer>
+    <div class="cce">&copy; <span id="year"></span> JDE AIHub Landing Zone</div>
+    🔹 Powered by JDE Cloud Center of Excellence
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

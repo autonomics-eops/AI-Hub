@@ -1,0 +1,6 @@
+az logicapp deployment source config-zip `
+  --name app-aihub-prd-we-001 `
+  --resource-group rg-aihub-prd-we-001 `
+  --src ".\src\usage-ingestion-logicapp.zip" `
+  --name app-aihub-prd-we-001 `
+  --verbose

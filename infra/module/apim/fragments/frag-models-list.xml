@@ -1,0 +1,72 @@
+<fragment>
+    <choose>
+        <when condition="@(context.Request.Url.Path.Equals(&quot;/models&quot;, System.StringComparison.OrdinalIgnoreCase) &amp;&amp; context.Request.MatchedParameters.ContainsKey(&quot;api-version&quot;))">
+            <return-response>
+                <set-status code="200" reason="OK" />
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>{
+                    "data": [
+                        {
+                            "capabilities": {
+                                "fine_tune": false,
+                                "inference": true,
+                                "completion": false,
+                                "chat_completion": true,
+                                "embeddings": false
+                            },
+                            "lifecycle_status": "generally-available",
+                            "deprecation": {
+                                "fine_tune": 1772150400,
+                                "inference": 1772150400
+                            },
+                            "id": "gpt-4o-mini-2024-07-18",
+                            "status": "succeeded",
+                            "created_at": 1721347200,
+                            "updated_at": 1724198400,
+                            "object": "model"
+                        },
+                        {
+                            "capabilities": {
+                                "fine_tune": false,
+                                "inference": true,
+                                "completion": false,
+                                "chat_completion": false,
+                                "embeddings": true
+                            },
+                            "lifecycle_status": "generally-available",
+                            "deprecation": {
+                                "inference": 1777507200
+                            },
+                            "id": "text-embedding-ada-002",
+                            "status": "succeeded",
+                            "created_at": 1675296000,
+                            "updated_at": 1675296000,
+                            "object": "model"
+                        },
+                        {
+                            "capabilities": {
+                                "fine_tune": false,
+                                "inference": true,
+                                "completion": false,
+                                "chat_completion": false,
+                                "embeddings": true
+                            },
+                            "lifecycle_status": "generally-available",
+                            "deprecation": {
+                                "inference": 1777507200
+                            },
+                            "id": "text-embedding-ada-002",
+                            "status": "succeeded",
+                            "created_at": 1680480000,
+                            "updated_at": 1680480000,
+                            "object": "model"
+                        }
+                    ],
+                    "object": "list"
+                }</set-body>
+            </return-response>
+        </when>
+    </choose>
+</fragment>

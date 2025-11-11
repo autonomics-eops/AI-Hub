@@ -1,0 +1,15 @@
+<fragment>
+    <choose>
+        <when condition="@(context.Response.StatusCode == 429)">
+            <emit-metric name="AI Throttling" value="1" namespace="throttling-events">
+                <dimension name="API ID" />
+                <dimension name="Operation ID" />
+                <!-- <dimension name="Subscription ID" /> -->
+                <dimension name="Location" />
+                <dimension name="Product Name" value="@((context.Product?.Name?.ToString() ?? &quot;Portal-Admin&quot;))" />
+                <dimension name="Deployment Name" value="@((string)context.Variables[&quot;target-deployment&quot;])" />
+                <dimension name="Service Name" value="@((string)context.Variables[&quot;service-name&quot;] ?? &quot;NA&quot;)" />
+            </emit-metric>
+        </when>
+    </choose>
+</fragment>

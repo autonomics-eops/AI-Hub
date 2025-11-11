@@ -1,0 +1,41 @@
+<fragment>
+    <choose>
+        <!-- Add a new when block, for each subscription, which you want to apply TPM limit -->
+        <when condition="@((string)context.Subscription.Id == &quot;subscription-ccoe&quot;)">
+            <azure-openai-token-limit counter-key="@((string)context.Subscription.Id)" tokens-per-minute="4"
+                estimate-prompt-tokens="false"
+                tokens-consumed-variable-name="consumed-tokens"
+                remaining-tokens-variable-name="remaining-tokens"
+                retry-after-header-name="retry-after" />
+        </when>
+        <when condition="@((string)context.Subscription.Id == &quot;genwizard&quot;)">
+            <azure-openai-token-limit counter-key="@((string)context.Subscription.Id)" tokens-per-minute="128000"
+                estimate-prompt-tokens="false"
+                tokens-consumed-variable-name="consumed-tokens"
+                remaining-tokens-variable-name="remaining-tokens"
+                retry-after-header-name="retry-after" />
+        </when>
+        <when condition="@((string)context.Subscription.Id == &quot;hcl-aex&quot;)">
+            <azure-openai-token-limit counter-key="@((string)context.Subscription.Id)" tokens-per-minute="500000"
+                estimate-prompt-tokens="false"
+                tokens-consumed-variable-name="consumed-tokens"
+                remaining-tokens-variable-name="remaining-tokens"
+                retry-after-header-name="retry-after" />
+        </when>
+        <when condition="@((string)context.Subscription.Id == &quot;hcl-aex-prd&quot;)">
+            <azure-openai-token-limit counter-key="@((string)context.Subscription.Id)" tokens-per-minute="500000"
+                estimate-prompt-tokens="false"
+                tokens-consumed-variable-name="consumed-tokens"
+                remaining-tokens-variable-name="remaining-tokens"
+                retry-after-header-name="retry-after" />
+        </when>
+        <!-- default (top) limit -->
+        <otherwise>
+            <azure-openai-token-limit counter-key="APIMOpenAI" tokens-per-minute="50000"
+                estimate-prompt-tokens="false"
+                tokens-consumed-variable-name="consumed-tokens"
+                remaining-tokens-variable-name="remaining-tokens"
+                retry-after-header-name="retry-after" />
+        </otherwise>
+    </choose>
+</fragment>

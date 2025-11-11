@@ -1,0 +1,41 @@
+<fragment>
+    <choose>
+        <when condition="@(context.Request.Url.Path.Equals(&quot;/deployments&quot;, System.StringComparison.OrdinalIgnoreCase) &amp;&amp; context.Request.MatchedParameters.ContainsKey(&quot;api-version&quot;))">
+            <return-response>
+                <set-status code="200" reason="OK" />
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>{
+                    "data": [
+                        {
+                            "scale_settings": {
+                                "scale_type": "standard"
+                            },
+                            "model": "gpt-4o",
+                            "owner": "organization-owner",
+                            "id": "gpt-4o",
+                            "status": "succeeded",
+                            "created_at": 1745539687,
+                            "updated_at": 1745539687,
+                            "object": "deployment"
+                        },
+                        {
+                            "scale_settings": {
+                                "scale_type": "standard"
+                            },
+                            "model": "text-embedding-ada-002",
+                            "owner": "organization-owner",
+                            "id": "text-embedding-ada-002",
+                            "status": "succeeded",
+                            "created_at": 1745539698,
+                            "updated_at": 1745539698,
+                            "object": "deployment"
+                        }
+                    ],
+                    "object": "list"
+                }</set-body>
+            </return-response>
+        </when>
+    </choose>
+</fragment>

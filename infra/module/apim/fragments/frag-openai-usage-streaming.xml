@@ -1,0 +1,59 @@
+<fragment>
+    <!-- Usage logs for "streaming" requests only -->
+    <choose>
+        <when condition="@(context.Variables.GetValueOrDefault&lt;string&gt;(&quot;isStream&quot;, &quot;false&quot;).Equals(&quot;true&quot;, StringComparison.OrdinalIgnoreCase))">
+            <set-variable name="potentialRouteIndex" value="@{
+                JArray routes = (JArray)context.Variables[&quot;routes&quot;];
+                int selectedPriority = Int32.MaxValue;
+                List&lt;int&gt; availableRoutesIndexes = new List&lt;int&gt;();
+
+                for (int i = 0; i &lt; routes.Count; i++)
+                {
+                    JObject route = (JObject)routes[i];
+
+                    if (!route.Value&lt;bool&gt;(&quot;isThrottling&quot;))
+                    {
+                        int routePriority = route.Value&lt;int&gt;(&quot;priority&quot;);
+
+                        if (routePriority &lt; selectedPriority)
+                        {
+                            selectedPriority = routePriority;
+                            availableRoutesIndexes.Clear();
+                            availableRoutesIndexes.Add(i);
+                        } 
+                        else if (routePriority == selectedPriority)
+                        {
+                            availableRoutesIndexes.Add(i);
+                        }
+                    }
+                }
+
+                if (availableRoutesIndexes.Count == 1)
+                {
+                    return availableRoutesIndexes[0];
+                }
+
+                if (availableRoutesIndexes.Count &gt; 0)
+                {
+                    return availableRoutesIndexes[new Random().Next(0, availableRoutesIndexes.Count)];
+                }
+
+                return 0;
+            }" />
+            <set-variable name="backendId" value="@(((JObject)((JArray)context.Variables[&quot;routes&quot;])[(Int32)context.Variables[&quot;potentialRouteIndex&quot;]]).Value&lt;string&gt;(&quot;backend-id&quot;))" />
+            <set-variable name="routeLocation" value="@(((JObject)((JArray)context.Variables[&quot;routes&quot;])[(Int32)context.Variables[&quot;potentialRouteIndex&quot;]]).Value&lt;string&gt;(&quot;location&quot;))" />
+            <set-variable name="routeName" value="@(((JObject)((JArray)context.Variables[&quot;routes&quot;])[(Int32)context.Variables[&quot;potentialRouteIndex&quot;]]).Value&lt;string&gt;(&quot;name&quot;))" />
+            <set-variable name="deploymentName" value="@((string)context.Variables[&quot;deployment-id&quot;])" />
+            <azure-openai-emit-token-metric namespace="ai-streaming">
+                <dimension name="SubscriptionId" value="@(context.Subscription.Id)" />
+                <dimension name="productName" value="@((context.Product?.Name?.ToString() ?? &quot;Portal-Admin&quot;))" />
+                <dimension name="gatewayName" value="@((context.Deployment?.ServiceName ?? &quot;NA&quot;))" />
+                <dimension name="routeName" value="@((string)context.Variables.GetValueOrDefault&lt;string&gt;(&quot;routeName&quot;, &quot;Streaming&quot;))" />
+                <dimension name="deploymentName" value="@((string)context.Variables.GetValueOrDefault&lt;string&gt;(&quot;deploymentName&quot;, &quot;Streaming&quot;))" />
+                <dimension name="operationName" value="@((context.Operation?.Id ?? &quot;Streaming&quot;))" />
+                <dimension name="backendId" value="@((string)context.Variables.GetValueOrDefault&lt;string&gt;(&quot;backendId&quot;, &quot;DefaultStreaming&quot;))" />
+                <dimension name="routeLocation" value="@((string)context.Variables.GetValueOrDefault&lt;string&gt;(&quot;routeLocation&quot;, &quot;DefaultStreaming&quot;))" />
+            </azure-openai-emit-token-metric>
+        </when>
+    </choose>
+</fragment>

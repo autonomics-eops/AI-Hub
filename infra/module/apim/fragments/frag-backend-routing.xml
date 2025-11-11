@@ -1,0 +1,102 @@
+<fragment>
+    <retry condition="@(context.Response != null &amp;&amp; (context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500) &amp;&amp; ((int)context.Variables.GetValueOrDefault(&quot;remainingRoutes&quot;, 0)) &gt; 0)" count="3" interval="0">
+        <!-- Before picking the route, let's verify if there is any that should be set to not throttling anymore -->
+        <set-variable name="routes" value="@{
+            JArray routes = (JArray)context.Variables[&quot;routes&quot;];
+            for (int i = 0; i &lt; routes.Count; i++)
+            {
+                JObject route = (JObject)routes[i];
+                if (route.Value&lt;bool&gt;(&quot;isThrottling&quot;) &amp;&amp; DateTime.UtcNow &gt;= route.Value&lt;DateTime&gt;(&quot;retryAfter&quot;))
+                {
+                    route[&quot;isThrottling&quot;] = false;
+                    route[&quot;retryAfter&quot;] = DateTime.MinValue;
+                }
+            }
+            return routes;
+        }" />
+        <cache-store-value key="@((string)context.Variables.GetValueOrDefault(&quot;routesCacheKey&quot;, &quot;ALL-ROUTES&quot;))" value="@((JArray)context.Variables[&quot;routes&quot;])" duration="86400" />
+        <!-- This is the main logic to pick the route to be used -->
+        <set-variable name="routeIndex" value="@{
+            JArray routes = (JArray)context.Variables[&quot;routes&quot;];
+            int selectedPriority = int.MaxValue;
+            List&lt;int&gt; availableRoutesIndexes = new List&lt;int&gt;();
+            for (int i = 0; i &lt; routes.Count; i++)
+            {
+                JObject route = (JObject)routes[i];
+                if (!route.Value&lt;bool&gt;(&quot;isThrottling&quot;))
+                {
+                    int routePriority = route.Value&lt;int&gt;(&quot;priority&quot;);
+                    if (routePriority &lt; selectedPriority)
+                    {
+                        selectedPriority = routePriority;
+                        availableRoutesIndexes.Clear();
+                        availableRoutesIndexes.Add(i);
+                    }
+                    else if (routePriority == selectedPriority)
+                    {
+                        availableRoutesIndexes.Add(i);
+                    }
+                }
+            }
+            if (availableRoutesIndexes.Count == 1)
+            {
+                return availableRoutesIndexes[0];
+            }
+            if (availableRoutesIndexes.Count &gt; 0)
+            {
+                return availableRoutesIndexes[new Random().Next(0, availableRoutesIndexes.Count)];
+            }
+            return 0;
+        }" />
+        <set-variable name="backendId" value="@(((JObject)((JArray)context.Variables[&quot;routes&quot;])[(int)context.Variables[&quot;routeIndex&quot;]]).Value&lt;string&gt;(&quot;backend-id&quot;))" />
+        <set-variable name="routeLocation" value="@(((JObject)((JArray)context.Variables[&quot;routes&quot;])[(int)context.Variables[&quot;routeIndex&quot;]]).Value&lt;string&gt;(&quot;location&quot;))" />
+        <set-variable name="routeName" value="@(((JObject)((JArray)context.Variables[&quot;routes&quot;])[(int)context.Variables[&quot;routeIndex&quot;]]).Value&lt;string&gt;(&quot;name&quot;))" />
+        <set-variable name="deploymentName" value="@((string)context.Variables[&quot;deployment-id&quot;])" />
+        <set-backend-service backend-id="@((string)context.Variables[&quot;backendId&quot;])" />
+        <choose>
+            <when condition="@(context.Variables.GetValueOrDefault(&quot;isStream&quot;, &quot;false&quot;) == &quot;true&quot;)">
+                <forward-request buffer-request-body="false" />
+            </when>
+            <otherwise>
+                <forward-request buffer-request-body="true" />
+            </otherwise>
+        </choose>
+        <choose>
+            <!-- In case we got 429 or 5xx from a route, update the list with its status -->
+            <when condition="@(context.Response != null &amp;&amp; (context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500))">
+                <cache-lookup-value key="@((string)context.Request.MatchedParameters[&quot;deployment-id&quot;] + &quot;Routes&quot; + context.Deployment.Region + context.Api.Revision)" variable-name="routes" />
+                <set-variable name="routes" value="@{
+                    JArray routes = (JArray)context.Variables[&quot;routes&quot;];
+                    int currentRouteIndex = context.Variables.GetValueOrDefault(&quot;routeIndex&quot;, 0);
+                    int retryAfter = Convert.ToInt32(context.Response.Headers.GetValueOrDefault(&quot;Retry-After&quot;, &quot;-1&quot;));
+                    if (retryAfter == -1)
+                    {
+                        retryAfter = Convert.ToInt32(context.Response.Headers.GetValueOrDefault(&quot;x-ratelimit-reset-requests&quot;, &quot;-1&quot;));
+                    }
+                    if (retryAfter == -1)
+                    {
+                        retryAfter = Convert.ToInt32(context.Response.Headers.GetValueOrDefault(&quot;x-ratelimit-reset-tokens&quot;, &quot;10&quot;));
+                    }
+                    JObject route = (JObject)routes[currentRouteIndex];
+                    route[&quot;isThrottling&quot;] = true;
+                    route[&quot;retryAfter&quot;] = DateTime.UtcNow.AddSeconds(retryAfter);
+                    return routes;
+                }" />
+                <cache-store-value key="@((string)context.Variables.GetValueOrDefault(&quot;routesCacheKey&quot;, &quot;ALL-ROUTES&quot;))" value="@((JArray)context.Variables[&quot;routes&quot;])" duration="86400" />
+                <set-variable name="remainingRoutes" value="@{
+                    JArray routes = (JArray)context.Variables[&quot;routes&quot;];
+                    int remainingRoutes = 0;
+                    for (int i = 0; i &lt; routes.Count; i++)
+                    {
+                        JObject route = (JObject)routes[i];
+                        if (!route.Value&lt;bool&gt;(&quot;isThrottling&quot;))
+                        {
+                            remainingRoutes++;
+                        }
+                    }
+                    return remainingRoutes;
+                }" />
+            </when>
+        </choose>
+    </retry>
+</fragment>

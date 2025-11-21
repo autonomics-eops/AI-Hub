@@ -1,5 +1,5 @@
 appName     = "aihub"
-location    = "westeurope"
+location    = "eastus"
 instance    = "001"
 environment = "production"
 
